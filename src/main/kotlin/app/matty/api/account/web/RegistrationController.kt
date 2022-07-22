@@ -5,6 +5,7 @@ import app.matty.api.account.data.UserRepository
 import app.matty.api.account.web.RegistrationErrorCode.USER_EXISTS
 import app.matty.api.account.web.RegistrationErrorCode.VERIFICATION_CODE_EXISTS
 import app.matty.api.account.web.RegistrationErrorCode.VERIFICATION_CODE_INVALID
+import app.matty.api.account.web.RegistrationResponseMessage.CodeResponse
 import app.matty.api.account.web.RegistrationResponseMessage.Error
 import app.matty.api.account.web.RegistrationResponseMessage.Success
 import app.matty.api.verification.ActiveCodeAlreadyExists
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 
 @RestController
 @RequestMapping("/registration")
@@ -30,16 +32,16 @@ class RegistrationController(
                 .status(HttpStatus.CONFLICT)
                 .body(Error(USER_EXISTS))
         }
-        try {
+        val verificationCode = try {
             verificationService.generateAndSend(email)
         } catch (e: ActiveCodeAlreadyExists) {
             return ResponseEntity.badRequest().body(Error(VERIFICATION_CODE_EXISTS))
         }
-        return ResponseEntity.ok().build()
+        return ResponseEntity.ok(CodeResponse(expiresAt = verificationCode.expiresAt))
     }
 
     @PostMapping
-    fun register(regRequest: RegistrationRequest): ResponseEntity<RegistrationResponseMessage> {
+    fun register(regRequest: RegistrationDataRequest): ResponseEntity<RegistrationResponseMessage> {
         val (fullName, email, verificationCode) = regRequest
         if (userRepository.existsByEmail(email)) {
             return ResponseEntity
@@ -62,17 +64,13 @@ class RegistrationController(
     }
 }
 
-data class RegistrationRequest(
-    val fullName: String,
-    val email: String,
-    val verificationCode: String,
-)
-
+data class RegistrationDataRequest(val fullName: String, val email: String, val verificationCode: String)
 data class VerificationCodeRequest(val email: String)
 
 sealed class RegistrationResponseMessage {
     data class Error(val error: RegistrationErrorCode) : RegistrationResponseMessage()
     data class Success(val user: User) : RegistrationResponseMessage()
+    data class CodeResponse(val expiresAt: Instant) : RegistrationResponseMessage()
 }
 
 enum class RegistrationErrorCode {

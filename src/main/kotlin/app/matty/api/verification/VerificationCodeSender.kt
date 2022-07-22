@@ -1,5 +1,5 @@
 package app.matty.api.verification
 
-interface VerificationCodeSender {
+fun interface VerificationCodeSender {
     fun send(code: String, destination: String)
 }

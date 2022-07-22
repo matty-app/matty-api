@@ -15,7 +15,7 @@ class VerificationService(
     private val sender: VerificationCodeSender,
     private val repository: VerificationCodeRepository
 ) {
-    fun generateAndSend(destination: String) {
+    fun generateAndSend(destination: String): VerificationCode {
         if (repository.isActiveCodeExist(destination)) {
             log.error("Verification code for destination '$destination' is already exist!")
             throw ActiveCodeAlreadyExists()
@@ -23,9 +23,10 @@ class VerificationService(
         val code = codesRange.random().toString()
         val expiresAt = Instant.now().plusMillis(ttl)
         val verificationCode = VerificationCode(code, destination, expiresAt, submitted = false)
-        repository.insert(verificationCode)
+        repository.add(verificationCode)
         log.debug("Generated verification code: $verificationCode")
         sender.send(code, destination)
+        return verificationCode
     }
 
     fun acceptCode(code: String, destination: String): Boolean {
@@ -39,16 +40,16 @@ class VerificationService(
         }
         if (verificationCode.submitted) {
             log.debug("Verification code already used")
-            return true
+            return false
         }
-        if (verificationCode.expiresAt.isAfter(now)) {
+        if (now.isAfter(verificationCode.expiresAt)) {
             log.debug("Verification code has expired")
             return false
         }
 
         repository.update(verificationCode.copy(submitted = true))
 
-        return false
+        return true
     }
 
     private val codesRange = (100000..999999)

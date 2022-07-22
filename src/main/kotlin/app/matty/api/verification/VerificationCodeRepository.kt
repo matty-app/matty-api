@@ -29,7 +29,7 @@ class VerificationCodeRepository(
         return mongoOperations.findOne(query, VerificationCode::class.java, DB_COLLECTION_NAME)
     }
 
-    fun insert(verificationCode: VerificationCode): VerificationCode {
+    fun add(verificationCode: VerificationCode): VerificationCode {
         return mongoOperations.insert(verificationCode, DB_COLLECTION_NAME)
     }
 
