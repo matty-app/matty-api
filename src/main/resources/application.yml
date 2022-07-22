@@ -1,2 +1,17 @@
 server:
-  port: 8081
+  port: 8082
+spring:
+  data:
+    mongodb:
+      database: matty
+      host: localhost
+      port: 27017
+      username: mongoroot
+      password: toorognom
+      authentication-database: admin
+app:
+  verification-code:
+    ttl: 30000
+logging:
+  level:
+    app.matty.api: DEBUG
