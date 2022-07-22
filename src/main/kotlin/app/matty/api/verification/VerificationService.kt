@@ -28,7 +28,7 @@ class VerificationService(
         sender.send(code, destination)
     }
 
-    fun submitCode(code: String, destination: String): Boolean {
+    fun acceptCode(code: String, destination: String): Boolean {
         log.debug("Trying to submit verification code: $code (destination $destination)")
         val now = Instant.now()
         val verificationCode = repository.findOneByCodeAndDestination(code, destination)

@@ -10,14 +10,6 @@ import java.time.Instant
 class VerificationCodeRepository(
     private val mongoOperations: MongoOperations
 ) {
-    fun insert(verificationCode: VerificationCode): VerificationCode {
-        return mongoOperations.insert(verificationCode, DB_COLLECTION_NAME)
-    }
-
-    fun update(verificationCode: VerificationCode): VerificationCode {
-        return mongoOperations.save(verificationCode, DB_COLLECTION_NAME)
-    }
-
     fun isActiveCodeExist(destination: String): Boolean {
         val query = Query.query(
             Criteria
@@ -35,6 +27,14 @@ class VerificationCodeRepository(
                 .and("destination").`is`(destination)
         )
         return mongoOperations.findOne(query, VerificationCode::class.java, DB_COLLECTION_NAME)
+    }
+
+    fun insert(verificationCode: VerificationCode): VerificationCode {
+        return mongoOperations.insert(verificationCode, DB_COLLECTION_NAME)
+    }
+
+    fun update(verificationCode: VerificationCode): VerificationCode {
+        return mongoOperations.save(verificationCode, DB_COLLECTION_NAME)
     }
 }
 
