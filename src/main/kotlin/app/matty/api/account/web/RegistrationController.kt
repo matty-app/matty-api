@@ -45,7 +45,7 @@ class RegistrationController(
     }
 
     @PostMapping
-    fun register(@RequestBody regRequest: RegistrationDataRequest): ResponseEntity<RegistrationResponseMessage> {
+    fun register(@RequestBody regRequest: RegistrationRequest): ResponseEntity<RegistrationResponseMessage> {
         val (fullName, email, verificationCode) = regRequest
         if (userRepository.existsByEmail(email)) {
             return ResponseEntity
@@ -68,8 +68,7 @@ class RegistrationController(
     }
 }
 
-data class RegistrationDataRequest(val fullName: String, val email: String, val verificationCode: String)
-data class VerificationCodeRequest(val email: String)
+data class RegistrationRequest(val fullName: String, val email: String, val verificationCode: String)
 
 sealed class RegistrationResponseMessage {
     data class Error(val error: RegistrationErrorCode) : RegistrationResponseMessage()

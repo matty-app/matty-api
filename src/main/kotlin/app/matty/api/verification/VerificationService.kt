@@ -52,7 +52,7 @@ class VerificationService(
         return true
     }
 
-    private val codesRange = (100000..999999)
+    private val codesRange = (1000..9999)
 }
 
 class ActiveCodeAlreadyExists : MattyApiException()
