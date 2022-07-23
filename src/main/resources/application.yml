@@ -11,7 +11,7 @@ spring:
       authentication-database: admin
 app:
   verification-code:
-    ttl: 30000
+    ttl: 300000
 logging:
   level:
     app.matty.api: DEBUG
