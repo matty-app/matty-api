@@ -4,9 +4,9 @@ import app.matty.api.auth.TokenService
 import app.matty.api.auth.web.LoginErrorCode.USER_NOT_FOUND
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_INVALID
-import app.matty.api.auth.web.LoginResponseMessage.VerificationCode
 import app.matty.api.auth.web.LoginResponseMessage.Error
 import app.matty.api.auth.web.LoginResponseMessage.Success
+import app.matty.api.auth.web.LoginResponseMessage.VerificationCode
 import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.ActiveCodeAlreadyExists
 import app.matty.api.verification.VerificationService

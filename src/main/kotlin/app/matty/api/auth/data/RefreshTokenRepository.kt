@@ -12,23 +12,23 @@ class RefreshTokenRepository(private val mongoOperations: MongoOperations) {
             mapOf(
                 "_id" to token,
                 "userId" to userId
-            ), REFRESH_TOKENS_COLLECTION
+            ), DB_COLLECTION_NAME
         )
     }
 
     fun exists(token: String): Boolean {
         return mongoOperations.exists(
             Query.query(Criteria.where("_id").`is`(token)),
-            REFRESH_TOKENS_COLLECTION
+            DB_COLLECTION_NAME
         )
     }
 
     fun delete(token: String) {
         mongoOperations.remove(
             Query.query(Criteria.where("_id").`is`(token)),
-            REFRESH_TOKENS_COLLECTION
+            DB_COLLECTION_NAME
         )
     }
 }
 
-private const val REFRESH_TOKENS_COLLECTION = "refresh_tokens"
+private const val DB_COLLECTION_NAME = "refresh_tokens"

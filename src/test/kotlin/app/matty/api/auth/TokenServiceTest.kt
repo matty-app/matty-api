@@ -15,6 +15,15 @@ import org.junit.jupiter.api.assertThrows
 import java.util.Optional
 
 class TokenServiceTest {
+    private val accessToken = "access-token-#"
+    private val refreshToken = "refresh-token-#"
+    private val user = User(
+        fullName = "john doe",
+        email = "mail@mail.com",
+        interests = emptyList(),
+        id = "userid"
+    )
+
     @Test
     fun `should not emmit tokens if userid is null`() {
         val tokenService = TokenService(
@@ -23,7 +32,7 @@ class TokenServiceTest {
             refreshTokenRepository = mockk(),
             userRepository = mockk()
         )
-        val invalidUser = createUser(id = null)
+        val invalidUser = user.copy(id = null)
 
         assertThrows<TokenServiceException> {
             tokenService.emmitTokens(invalidUser)
@@ -32,9 +41,6 @@ class TokenServiceTest {
 
     @Test
     fun `should emmit tokens`() {
-        val user = createUser()
-        val accessToken = "access-token-#"
-        val refreshToken = "refresh-token-#"
         val tokenGenerator = mockk<TokenGenerator> {
             every { generateAccessToken(user.id!!, any()) } returns accessToken
             every { generateRefreshToken(user.id!!) } returns refreshToken
@@ -59,7 +65,6 @@ class TokenServiceTest {
 
     @Test
     fun `should not refresh tokens if RT is not exist`() {
-        val refreshToken = "refresh-token-#"
         val refreshTokenRepository = mockk<RefreshTokenRepository> {
             every { exists(refreshToken) } returns false
         }
@@ -77,8 +82,6 @@ class TokenServiceTest {
 
     @Test
     fun `should not refresh tokens if user is not exist`() {
-        val refreshToken = "refresh-token-#"
-        val user = createUser()
         val refreshTokenRepository = mockk<RefreshTokenRepository> {
             every { exists(refreshToken) } returns true
         }
@@ -102,7 +105,6 @@ class TokenServiceTest {
 
     @Test
     fun `should not refresh tokens if RT is invalid`() {
-        val refreshToken = "refresh-token-#"
         val user = createUser()
         val refreshTokenRepository = mockk<RefreshTokenRepository> {
             every { exists(refreshToken) } returns true

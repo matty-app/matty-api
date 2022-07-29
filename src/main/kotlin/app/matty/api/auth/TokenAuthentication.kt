@@ -4,8 +4,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 class TokenAuthentication(
-    @Suppress("unused") val token: String,
-    @Suppress("unused") val userId: String
+    val token: String,
+    val userId: String
 ) : Authentication {
     override fun getName() = null
 
