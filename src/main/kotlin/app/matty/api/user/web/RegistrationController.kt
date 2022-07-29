@@ -1,13 +1,14 @@
-package app.matty.api.account.web
+package app.matty.api.user.web
 
-import app.matty.api.account.data.User
-import app.matty.api.account.data.UserRepository
-import app.matty.api.account.web.RegistrationErrorCode.USER_EXISTS
-import app.matty.api.account.web.RegistrationErrorCode.VERIFICATION_CODE_EXISTS
-import app.matty.api.account.web.RegistrationErrorCode.VERIFICATION_CODE_INVALID
-import app.matty.api.account.web.RegistrationResponseMessage.CodeResponse
-import app.matty.api.account.web.RegistrationResponseMessage.Error
-import app.matty.api.account.web.RegistrationResponseMessage.Success
+import app.matty.api.auth.TokenService
+import app.matty.api.user.data.User
+import app.matty.api.user.data.UserRepository
+import app.matty.api.user.web.RegistrationErrorCode.USER_EXISTS
+import app.matty.api.user.web.RegistrationErrorCode.VERIFICATION_CODE_EXISTS
+import app.matty.api.user.web.RegistrationErrorCode.VERIFICATION_CODE_INVALID
+import app.matty.api.user.web.RegistrationResponseMessage.Error
+import app.matty.api.user.web.RegistrationResponseMessage.Success
+import app.matty.api.user.web.RegistrationResponseMessage.VerificationCode
 import app.matty.api.verification.ActiveCodeAlreadyExists
 import app.matty.api.verification.VerificationService
 import org.springframework.http.HttpStatus
@@ -24,7 +25,8 @@ import java.time.Instant
 @RequestMapping("/registration")
 class RegistrationController(
     private val verificationService: VerificationService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tokenService: TokenService
 ) {
     @GetMapping("/code")
     fun sendVerificationCode(
@@ -32,39 +34,38 @@ class RegistrationController(
     ): ResponseEntity<RegistrationResponseMessage> {
         //TODO validate email
         if (userRepository.existsByEmail(email)) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Error(USER_EXISTS))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Error(USER_EXISTS))
         }
         val verificationCode = try {
             verificationService.generateAndSend(email)
         } catch (e: ActiveCodeAlreadyExists) {
             return ResponseEntity.badRequest().body(Error(VERIFICATION_CODE_EXISTS))
         }
-        return ResponseEntity.ok(CodeResponse(expiresAt = verificationCode.expiresAt))
+        return ResponseEntity.ok(VerificationCode(expiresAt = verificationCode.expiresAt))
     }
 
     @PostMapping
     fun register(@RequestBody regRequest: RegistrationRequest): ResponseEntity<RegistrationResponseMessage> {
         val (fullName, email, verificationCode) = regRequest
         if (userRepository.existsByEmail(email)) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Error(USER_EXISTS))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Error(USER_EXISTS))
         }
         if (!verificationService.acceptCode(verificationCode, email)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Error(VERIFICATION_CODE_INVALID))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Error(VERIFICATION_CODE_INVALID))
         }
         val newUser = userRepository.insert(
             User(
-                fullName = fullName,
-                email = email,
-                interests = emptyList(),
-                id = null
+                fullName = fullName, email = email, interests = emptyList(), id = null
             )
         )
-        return ResponseEntity.ok(Success(user = newUser))
+        val tokens = tokenService.emmitTokens(newUser)
+        return ResponseEntity.ok(
+            Success(
+                user = newUser,
+                accessToken = tokens.accessToken,
+                refreshToken = tokens.refreshToken
+            )
+        )
     }
 }
 
@@ -72,12 +73,15 @@ data class RegistrationRequest(val fullName: String, val email: String, val veri
 
 sealed class RegistrationResponseMessage {
     data class Error(val error: RegistrationErrorCode) : RegistrationResponseMessage()
-    data class Success(val user: User) : RegistrationResponseMessage()
-    data class CodeResponse(val expiresAt: Instant) : RegistrationResponseMessage()
+    data class Success(
+        val user: User,
+        val accessToken: String,
+        val refreshToken: String
+    ) : RegistrationResponseMessage()
+
+    data class VerificationCode(val expiresAt: Instant) : RegistrationResponseMessage()
 }
 
 enum class RegistrationErrorCode {
-    USER_EXISTS,
-    VERIFICATION_CODE_EXISTS,
-    VERIFICATION_CODE_INVALID
+    USER_EXISTS, VERIFICATION_CODE_EXISTS, VERIFICATION_CODE_INVALID
 }

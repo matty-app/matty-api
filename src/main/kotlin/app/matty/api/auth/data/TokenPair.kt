@@ -1,4 +1,4 @@
-package app.matty.api.security.data
+package app.matty.api.auth.data
 
 data class TokenPair(
     val accessToken: String,

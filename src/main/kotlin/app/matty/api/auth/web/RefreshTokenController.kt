@@ -1,9 +1,9 @@
-package app.matty.api.account.web
+package app.matty.api.auth.web
 
-import app.matty.api.security.TokenAuthentication
-import app.matty.api.security.TokenService
-import app.matty.api.security.data.TokenPair
-import app.matty.api.security.exc.TokenServiceException
+import app.matty.api.auth.TokenAuthentication
+import app.matty.api.auth.TokenService
+import app.matty.api.auth.data.TokenPair
+import app.matty.api.auth.exc.TokenServiceException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder

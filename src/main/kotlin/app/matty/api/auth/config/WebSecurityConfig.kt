@@ -1,6 +1,6 @@
-package app.matty.api.security.config
+package app.matty.api.auth.config
 
-import app.matty.api.security.AuthTokenFilter
+import app.matty.api.auth.AuthTokenFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity

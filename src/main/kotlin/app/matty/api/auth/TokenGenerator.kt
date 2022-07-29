@@ -1,6 +1,6 @@
-package app.matty.api.security
+package app.matty.api.auth
 
-import app.matty.api.security.config.TokensConfiguration
+import app.matty.api.auth.config.TokensConfiguration
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import org.springframework.stereotype.Component
@@ -13,14 +13,14 @@ class TokenGenerator(
     fun generateAccessToken(userId: String, claims: Map<String, String>): String = generateToken(
         userId = userId,
         claims = claims,
-        ttlInMillis = tokensConfiguration.accessTokenTtlInMillis,
+        ttlInMillis = tokensConfiguration.accessTokenTtl,
         signAlgorithm = tokensConfiguration.accessTokenAlgorithm
     )
 
     fun generateRefreshToken(userId: String) = generateToken(
         userId = userId,
         claims = emptyMap(),
-        ttlInMillis = tokensConfiguration.refreshTokenTtlInMillis,
+        ttlInMillis = tokensConfiguration.refreshTokenTtl,
         signAlgorithm = tokensConfiguration.refreshTokenAlgorithm
     )
 

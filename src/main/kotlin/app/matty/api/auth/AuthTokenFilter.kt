@@ -1,6 +1,6 @@
-package app.matty.api.security
+package app.matty.api.auth
 
-import app.matty.api.security.exc.InvalidTokenException
+import app.matty.api.auth.exc.InvalidTokenException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter

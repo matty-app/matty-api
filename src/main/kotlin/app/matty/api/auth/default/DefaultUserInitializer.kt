@@ -1,7 +1,7 @@
-package app.matty.api.security.default
+package app.matty.api.auth.default
 
-import app.matty.api.account.data.User
-import app.matty.api.account.data.UserRepository
+import app.matty.api.user.data.User
+import app.matty.api.user.data.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner

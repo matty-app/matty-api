@@ -1,4 +1,4 @@
-package app.matty.api.security.exc
+package app.matty.api.auth.exc
 
 import app.matty.api.common.MattyApiException
 

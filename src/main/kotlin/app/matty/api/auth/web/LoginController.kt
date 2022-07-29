@@ -1,13 +1,13 @@
-package app.matty.api.account.web
+package app.matty.api.auth.web
 
-import app.matty.api.account.data.UserRepository
-import app.matty.api.account.web.LoginErrorCode.USER_NOT_FOUND
-import app.matty.api.account.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
-import app.matty.api.account.web.LoginErrorCode.VERIFICATION_CODE_INVALID
-import app.matty.api.account.web.LoginResponseMessage.CodeResponse
-import app.matty.api.account.web.LoginResponseMessage.Error
-import app.matty.api.account.web.LoginResponseMessage.Success
-import app.matty.api.security.TokenService
+import app.matty.api.auth.TokenService
+import app.matty.api.auth.web.LoginErrorCode.USER_NOT_FOUND
+import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
+import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_INVALID
+import app.matty.api.auth.web.LoginResponseMessage.VerificationCode
+import app.matty.api.auth.web.LoginResponseMessage.Error
+import app.matty.api.auth.web.LoginResponseMessage.Success
+import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.ActiveCodeAlreadyExists
 import app.matty.api.verification.VerificationService
 import org.springframework.http.HttpStatus
@@ -36,13 +36,12 @@ class LoginController(
             return ResponseEntity.status(NOT_FOUND)
                 .body(Error(USER_NOT_FOUND))
         }
-
         val verificationCode = try {
             verificationService.generateAndSend(email)
         } catch (e: ActiveCodeAlreadyExists) {
             return ResponseEntity.badRequest().body(Error(VERIFICATION_CODE_EXISTS))
         }
-        return ResponseEntity.ok(CodeResponse(expiresAt = verificationCode.expiresAt))
+        return ResponseEntity.ok(VerificationCode(expiresAt = verificationCode.expiresAt))
     }
 
     @PostMapping
@@ -54,7 +53,7 @@ class LoginController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Error(VERIFICATION_CODE_INVALID))
         }
-        val tokens = tokenService.createTokens(user)
+        val tokens = tokenService.emmitTokens(user)
         return ResponseEntity.ok(
             Success(
                 accessToken = tokens.accessToken,
@@ -69,7 +68,7 @@ data class LoginRequest(val email: String, val verificationCode: String)
 sealed class LoginResponseMessage {
     data class Error(val error: LoginErrorCode) : LoginResponseMessage()
     data class Success(val accessToken: String, val refreshToken: String) : LoginResponseMessage()
-    data class CodeResponse(val expiresAt: Instant) : LoginResponseMessage()
+    data class VerificationCode(val expiresAt: Instant) : LoginResponseMessage()
 }
 
 enum class LoginErrorCode {

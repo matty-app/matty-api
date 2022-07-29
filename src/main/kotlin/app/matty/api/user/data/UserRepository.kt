@@ -1,4 +1,4 @@
-package app.matty.api.account.data
+package app.matty.api.user.data
 
 import org.springframework.data.mongodb.repository.MongoRepository
 

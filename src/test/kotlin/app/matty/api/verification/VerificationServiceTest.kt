@@ -66,13 +66,13 @@ class VerificationServiceTest {
             repository = repository
         )
         val fixedTime = Instant.now()
-        val codeExpirationTime = fixedTime.plusMillis(codeTtl)
+        val expectedExpiration = fixedTime.plusMillis(codeTtl)
 
         mockkStatic(Instant::class)
         every { Instant.now() } returns fixedTime
         val verificationCode = verificationService.generateAndSend(destination)
 
-        assertEquals(codeExpirationTime, verificationCode.expiresAt)
+        assertEquals(expectedExpiration, verificationCode.expiresAt)
     }
 
     @Test

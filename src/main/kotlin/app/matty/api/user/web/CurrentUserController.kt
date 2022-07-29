@@ -1,8 +1,8 @@
-package app.matty.api.account.web
+package app.matty.api.user.web
 
-import app.matty.api.account.data.User
-import app.matty.api.account.data.UserRepository
-import app.matty.api.security.TokenAuthentication
+import app.matty.api.user.data.User
+import app.matty.api.user.data.UserRepository
+import app.matty.api.auth.TokenAuthentication
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/user")
-class UserController(
+class CurrentUserController(
     private val userRepository: UserRepository
 ) {
     @GetMapping("/me")

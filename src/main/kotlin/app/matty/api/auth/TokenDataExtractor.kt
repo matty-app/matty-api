@@ -1,7 +1,7 @@
-package app.matty.api.security
+package app.matty.api.auth
 
-import app.matty.api.security.config.TokensConfiguration
-import app.matty.api.security.exc.InvalidTokenException
+import app.matty.api.auth.config.TokensConfiguration
+import app.matty.api.auth.exc.InvalidTokenException
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
