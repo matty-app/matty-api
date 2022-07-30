@@ -31,7 +31,7 @@ import java.time.Instant
 import java.util.UUID
 
 
-@SpringBootTest(classes = [LoginControllerTest.Companion.Initializer::class])
+@SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
 @ContextConfiguration(
