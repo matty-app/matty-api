@@ -6,5 +6,6 @@ data class VerificationCode(
     val code: String,
     val destination: String,
     val expiresAt: Instant,
-    val submitted: Boolean
+    val submitted: Boolean,
+    private val id: String = "${code}_${destination}_${expiresAt}"
 )

@@ -36,6 +36,10 @@ class VerificationCodeRepository(
     fun update(verificationCode: VerificationCode): VerificationCode {
         return mongoOperations.save(verificationCode, DB_COLLECTION_NAME)
     }
+
+    fun remove(verificationCode: VerificationCode) {
+        mongoOperations.remove(verificationCode, DB_COLLECTION_NAME)
+    }
 }
 
 private const val DB_COLLECTION_NAME = "verification_codes"
