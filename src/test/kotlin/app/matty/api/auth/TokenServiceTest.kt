@@ -35,7 +35,7 @@ class TokenServiceTest {
         val invalidUser = user.copy(id = null)
 
         assertThrows<TokenServiceException> {
-            tokenService.emmitTokens(invalidUser)
+            tokenService.emitTokens(invalidUser)
         }
     }
 
@@ -53,7 +53,7 @@ class TokenServiceTest {
             userRepository = mockk()
         )
 
-        val tokenPair = tokenService.emmitTokens(user)
+        val tokenPair = tokenService.emitTokens(user)
 
         assertEquals(accessToken, tokenPair.accessToken, "Access token")
         assertEquals(refreshToken, tokenPair.refreshToken, "Refresh token")

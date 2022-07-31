@@ -16,7 +16,7 @@ class TokenService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val userRepository: UserRepository
 ) {
-    fun emmitTokens(user: User): TokenPair {
+    fun emitTokens(user: User): TokenPair {
         if (user.id == null) {
             throw TokenServiceException("User.id can't be null!")
         }
@@ -46,7 +46,7 @@ class TokenService(
 
         refreshTokenRepository.delete(refreshToken)
 
-        return emmitTokens(user)
+        return emitTokens(user)
     }
 }
 

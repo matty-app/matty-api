@@ -58,7 +58,7 @@ class RegistrationController(
                 fullName = fullName, email = email, interests = emptyList(), id = null
             )
         )
-        val tokens = tokenService.emmitTokens(newUser)
+        val tokens = tokenService.emitTokens(newUser)
         return ResponseEntity.ok(
             Success(
                 user = newUser,

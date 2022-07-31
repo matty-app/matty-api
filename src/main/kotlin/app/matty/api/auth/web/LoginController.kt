@@ -53,7 +53,7 @@ class LoginController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Error(VERIFICATION_CODE_INVALID))
         }
-        val tokens = tokenService.emmitTokens(user)
+        val tokens = tokenService.emitTokens(user)
         return ResponseEntity.ok(
             Success(
                 accessToken = tokens.accessToken,
