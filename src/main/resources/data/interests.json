@@ -1,0 +1,292 @@
+[
+  {
+    "name": "Football",
+    "emoji": "⚽️"
+  },
+  {
+    "name": "Basketball",
+    "emoji": "🏀"
+  },
+  {
+    "name": "Table tennis",
+    "emoji": "🏓"
+  },
+  {
+    "name": "Tennis",
+    "emoji": "🎾"
+  },
+  {
+    "name": "Swimming",
+    "emoji": "🏊‍"
+  },
+  {
+    "name": "Volleyball",
+    "emoji": "🏐"
+  },
+  {
+    "name": "Hockey",
+    "emoji": "🏒"
+  },
+  {
+    "name": "Badminton",
+    "emoji": "🏸"
+  },
+  {
+    "name": "Baseball",
+    "emoji": "⚾️"
+  },
+  {
+    "name": "Boxing",
+    "emoji": "🥊️"
+  },
+  {
+    "name": "Running",
+    "emoji": "🏃‍"
+  },
+  {
+    "name": "Wrestling",
+    "emoji": "🤼‍"
+  },
+  {
+    "name": "Martial Arts",
+    "emoji": "🥋"
+  },
+  {
+    "name": "Cycling",
+    "emoji": "🚴"
+  },
+  {
+    "name": "Skiing",
+    "emoji": "⛷"
+  },
+  {
+    "name": "Snowboard",
+    "emoji": "🏂"
+  },
+  {
+    "name": "Dressage",
+    "emoji": "🐎"
+  },
+  {
+    "name": "Jumping",
+    "emoji": "🐎"
+  },
+  {
+    "name": "Board games",
+    "emoji": "♟"
+  },
+  {
+    "name": "Online Games",
+    "emoji": "🎮"
+  },
+  {
+    "name": "Hiking",
+    "emoji": "🥾"
+  },
+  {
+    "name": "Climbing",
+    "emoji": "🧗‍"
+  },
+  {
+    "name": "Yoga",
+    "emoji": "🧘‍"
+  },
+  {
+    "name": "Meditation",
+    "emoji": "🧘‍"
+  },
+  {
+    "name": "Languages",
+    "emoji": "🌎"
+  },
+  {
+    "name": "Camping",
+    "emoji": "⛺"
+  },
+  {
+    "name": "Fellow traveler",
+    "emoji": "🚙"
+  },
+  {
+    "name": "Hitch-hiking",
+    "emoji": "🥾"
+  },
+  {
+    "name": "Tour",
+    "emoji": "🗺"
+  },
+  {
+    "name": "Excursion",
+    "emoji": "👀"
+  },
+  {
+    "name": "Cruise",
+    "emoji": "🛳"
+  },
+  {
+    "name": "Dancing",
+    "emoji": "💃"
+  },
+  {
+    "name": "Theater",
+    "emoji": "🎭"
+  },
+  {
+    "name": "Restaurant",
+    "emoji": "🥂"
+  },
+  {
+    "name": "Pub/bar",
+    "emoji": "🍹"
+  },
+  {
+    "name": "Walk",
+    "emoji": "🚶"
+  },
+  {
+    "name": "Coding",
+    "emoji": "🧑‍💻"
+  },
+  {
+    "name": "Conference"
+  },
+  {
+    "name": "Concert",
+    "emoji": "🎸"
+  },
+  {
+    "name": "Parachute",
+    "emoji": "🪂"
+  },
+  {
+    "name": "Books",
+    "emoji": "📚"
+  },
+  {
+    "name": "Beach",
+    "emoji": "🏖"
+  },
+  {
+    "name": "Swimming pool",
+    "emoji": "💦"
+  },
+  {
+    "name": "Water polo",
+    "emoji": "🤽‍"
+  },
+  {
+    "name": "Surfing",
+    "emoji": "🏄‍"
+  },
+  {
+    "name": "Wakeboarding",
+    "emoji": "🏄‍️"
+  },
+  {
+    "name": "SUP",
+    "emoji": "🏄‍️"
+  },
+  {
+    "name": "Music",
+    "emoji": "🎶‍️"
+  },
+  {
+    "name": "Talk",
+    "emoji": "☕️️"
+  },
+  {
+    "name": "Debating club",
+    "emoji": "☕️"
+  },
+  {
+    "name": "Webinar"
+  },
+  {
+    "name": "Workout",
+    "emoji": "🏋️‍"
+  },
+  {
+    "name": "Ice skate",
+    "emoji": "⛸️‍"
+  },
+  {
+    "name": "Roller skate",
+    "emoji": "🛼"
+  },
+  {
+    "name": "Skateboard",
+    "emoji": "🛹"
+  },
+  {
+    "name": "Kick scooter",
+    "emoji": "🛴"
+  },
+  {
+    "name": "Racing",
+    "emoji": "🏁"
+  },
+  {
+    "name": "eSports",
+    "emoji": "🎮"
+  },
+  {
+    "name": "Cars",
+    "emoji": "🚗"
+  },
+  {
+    "name": "Fishing",
+    "emoji": "🎣"
+  },
+  {
+    "name": "Singing",
+    "emoji": "🎤"
+  },
+  {
+    "name": "Bowling",
+    "emoji": "🎳"
+  },
+  {
+    "name": "Science",
+    "emoji": "🧑‍🔬"
+  },
+  {
+    "name": "Psychology",
+    "emoji": "🧠"
+  },
+  {
+    "name": "Politics",
+    "emoji": "🖋"
+  },
+  {
+    "name": "Party",
+    "emoji": "🥳"
+  },
+  {
+    "name": "Barbecue",
+    "emoji": "🍖"
+  },
+  {
+    "name": "Magic",
+    "emoji": "🪄"
+  },
+  {
+    "name": "Films",
+    "emoji": "🎥"
+  },
+  {
+    "name": "Cinema",
+    "emoji": "🍿"
+  },
+  {
+    "name": "Astronomy",
+    "emoji": "🪐"
+  },
+  {
+    "name": "Fashion",
+    "emoji": "👒"
+  },
+  {
+    "name": "Shopping",
+    "emoji": "🛍"
+  }
+]
