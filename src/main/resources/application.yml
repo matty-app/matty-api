@@ -12,6 +12,11 @@ spring:
 app:
   verification-code:
     ttl: 300000
+  tokens:
+    refresh-token-ttl: 2592000000 # 30 days
+    refresh-token-secret: 625aba93-28d0-43eb-94dc-0c0d290c3973
+    access-token-ttl: 3600000 # 1 hour
+    access-token-secret: f2a7544f-1dc1-4539-85ae-7ca7ef34c8de
 logging:
   level:
     app.matty.api: DEBUG

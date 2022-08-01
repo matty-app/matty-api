@@ -1,4 +1,4 @@
-package app.matty.api.account.data
+package app.matty.api.user.data
 
 data class User(
     val fullName: String,
