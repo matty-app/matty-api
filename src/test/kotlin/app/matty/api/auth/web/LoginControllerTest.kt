@@ -2,8 +2,10 @@ package app.matty.api.auth.web
 
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
+import app.matty.api.verification.Purpose.LOGIN
+import app.matty.api.verification.TransportType.EMAIL
 import app.matty.api.verification.VerificationCode
-import app.matty.api.verification.VerificationCodeRepository
+import app.matty.api.verification.data.VerificationCodeRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.AfterEach
@@ -56,15 +58,29 @@ class LoginControllerTest {
     private val user = User(
         fullName = "john doe",
         email = "johndoe@matty.dev",
+        phone = "12345678",
         interests = emptyList(),
         id = UUID.randomUUID().toString()
     )
 
-    private val verificationCode = VerificationCode(
+    private val validCode = VerificationCode(
         code = "1234",
-        destination = user.email,
+        destination = user.email!!,
         expiresAt = Instant.now().plusSeconds(60),
-        submitted = false
+        transport = EMAIL,
+        purpose = LOGIN,
+        accepted = false,
+        id = "validVerificationCode"
+    )
+
+    private val nonExistentUserCode = VerificationCode(
+        code = "1234",
+        destination = "user-not-found",
+        expiresAt = Instant.now().plusSeconds(60),
+        transport = EMAIL,
+        purpose = LOGIN,
+        accepted = false,
+        id = "undefinedUserVerificationCode"
     )
 
     @Autowired
@@ -82,70 +98,82 @@ class LoginControllerTest {
     @BeforeEach
     fun setUp() {
         userRepository.insert(user)
-        verificationCodeRepository.add(verificationCode)
+        verificationCodeRepository.add(validCode)
+        verificationCodeRepository.add(nonExistentUserCode)
     }
 
     @AfterEach
     fun tearDown() {
         userRepository.delete(user)
-        verificationCodeRepository.remove(verificationCode)
+        verificationCodeRepository.remove(validCode)
+        verificationCodeRepository.remove(nonExistentUserCode)
     }
 
     @Test
-    fun `should not generate verification code if user not found`() {
-        mockMvc.perform(get("/login/code?email=usernotfound@matty.dev"))
+    fun `should not generate email verification code if user not found`() {
+        mockMvc.perform(get("/login/email/code?email=usernotfound@matty.dev"))
+            .andExpect(status().is4xxClientError)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error", `is`(LoginErrorCode.USER_NOT_FOUND.name)))
+    }
+
+
+    @Test
+    fun `should not generate phone verification code if user not found`() {
+        mockMvc.perform(get("/login/phone/code?phone=404"))
             .andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.USER_NOT_FOUND.name)))
     }
 
     @Test
-    fun `should not generate verification code if active code already exists`() {
-        mockMvc.perform(get("/login/code?email=${user.email}"))
+    fun `should not generate email verification code if active code already exists`() {
+        mockMvc.perform(get("/login/email/code?email=${user.email}"))
             .andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_EXISTS.name)))
     }
 
     @Test
-    fun `should generate verification code`() {
-        verificationCodeRepository.remove(verificationCode)
+    fun `should generate email verification code`() {
+        verificationCodeRepository.remove(validCode)
 
-        mockMvc.perform(get("/login/code?email=${user.email}"))
+        mockMvc.perform(get("/login/email/code?email=${user.email}"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.expiresAt").isNotEmpty)
+            .andExpect(jsonPath("$.verificationId").isNotEmpty)
     }
 
     @Test
-    fun `should not login if user not found`() {
-        val email = "usernotfound@matty.dev"
+    fun `should not login by email if user not found`() {
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = email, verificationCode = verificationCode.code
+                verificationId = nonExistentUserCode.id!!,
+                verificationCode = nonExistentUserCode.code
             )
         )
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login/email").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.USER_NOT_FOUND.name)))
     }
 
     @Test
-    fun `should not login if verification code has already been submitted`() {
+    fun `should not login if email verification code has already been submitted`() {
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = user.email,
-                verificationCode = verificationCode.code
+                verificationId = validCode.id!!,
+                verificationCode = validCode.code
             )
         )
 
-        verificationCodeRepository.update(verificationCode.copy(submitted = true))
+        verificationCodeRepository.update(validCode.copy(accepted = true))
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login/email").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
@@ -155,13 +183,13 @@ class LoginControllerTest {
     fun `should not login if verification code does not exist`() {
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = user.email,
+                verificationId = validCode.id!!,
                 verificationCode = "non-existent verification code"
             )
         )
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login/email").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
@@ -172,12 +200,13 @@ class LoginControllerTest {
     fun `should login`() {
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = user.email, verificationCode = verificationCode.code
+                verificationId = validCode.id!!,
+                verificationCode = validCode.code
             )
         )
 
         mockMvc.perform(
-            post("/login").header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).content(requestBody)
+            post("/login/email").header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).content(requestBody)
         ).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.accessToken").isNotEmpty)

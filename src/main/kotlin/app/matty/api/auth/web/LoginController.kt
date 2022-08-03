@@ -1,18 +1,29 @@
 package app.matty.api.auth.web
 
 import app.matty.api.auth.TokenService
+import app.matty.api.auth.web.LoginErrorCode.EMAIL_INVALID
 import app.matty.api.auth.web.LoginErrorCode.USER_NOT_FOUND
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_INVALID
-import app.matty.api.auth.web.LoginResponseMessage.Error
-import app.matty.api.auth.web.LoginResponseMessage.Success
-import app.matty.api.auth.web.LoginResponseMessage.VerificationCode
+import app.matty.api.auth.web.LoginResponse.Error
+import app.matty.api.auth.web.LoginResponse.Success
+import app.matty.api.auth.web.LoginResponse.VerificationCode
+import app.matty.api.common.isEmailNotValid
+import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.ActiveCodeAlreadyExists
+import app.matty.api.verification.CodeAcceptanceResult.Accepted
+import app.matty.api.verification.CodeAcceptanceResult.NotAccepted
+import app.matty.api.verification.Purpose.LOGIN
+import app.matty.api.verification.TransportType
+import app.matty.api.verification.TransportType.EMAIL
+import app.matty.api.verification.TransportType.SMS
 import app.matty.api.verification.VerificationService
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseEntity.badRequest
+import org.springframework.http.ResponseEntity.ok
+import org.springframework.http.ResponseEntity.status
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -24,55 +35,98 @@ import java.time.Instant
 @RestController
 @RequestMapping("/login")
 class LoginController(
-    val verificationService: VerificationService,
-    val userRepository: UserRepository,
-    val tokenService: TokenService
+    val verificationService: VerificationService, val userRepository: UserRepository, val tokenService: TokenService
 ) {
-    @GetMapping("/code")
-    fun sendLoginCode(
-        @RequestParam("email", required = true) email: String
-    ): ResponseEntity<LoginResponseMessage> {
-        if (!userRepository.existsByEmail(email)) {
-            return ResponseEntity.status(NOT_FOUND)
-                .body(Error(USER_NOT_FOUND))
+    @GetMapping("/email/code")
+    fun getEmailVerificationCode(
+        @RequestParam("email", required = true) email: String,
+    ): ResponseEntity<LoginResponse> {
+        if (isEmailNotValid(email)) {
+            return badRequest().body(Error(EMAIL_INVALID))
         }
-        val verificationCode = try {
-            verificationService.generateAndSend(email)
-        } catch (e: ActiveCodeAlreadyExists) {
-            return ResponseEntity.badRequest().body(Error(VERIFICATION_CODE_EXISTS))
-        }
-        return ResponseEntity.ok(VerificationCode(expiresAt = verificationCode.expiresAt))
+        return handleVerificationCodeRequest(
+            destination = email,
+            userExistentPredicate = userRepository::existsByEmail,
+            verificationTransport = EMAIL
+        )
     }
 
-    @PostMapping
-    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<LoginResponseMessage> {
-        val (email, verificationCode) = loginRequest
-        val user =
-            userRepository.findByEmail(email) ?: return ResponseEntity.status(NOT_FOUND).body(Error(USER_NOT_FOUND))
-        if (!verificationService.acceptCode(verificationCode, email)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Error(VERIFICATION_CODE_INVALID))
+    @PostMapping("/email")
+    fun loginByEmail(@RequestBody loginRequest: LoginRequest) = handleLogin(
+        loginRequest = loginRequest,
+        loadUserByCodeDestination = userRepository::findByEmail,
+        verificationTransport = EMAIL
+    )
+
+    @PostMapping("/phone")
+    fun loginByPhone(@RequestBody loginRequest: LoginRequest) = handleLogin(
+        loginRequest = loginRequest,
+        loadUserByCodeDestination = userRepository::findByPhone,
+        verificationTransport = SMS
+    )
+
+    @GetMapping("/phone/code")
+    fun getSmsVerificationCode(
+        @RequestParam("phone", required = false) phone: String
+    ): ResponseEntity<LoginResponse> = handleVerificationCodeRequest(
+        destination = phone,
+        userExistentPredicate = userRepository::existsByPhone,
+        verificationTransport = SMS
+    )
+
+    private inline fun handleLogin(
+        loginRequest: LoginRequest, loadUserByCodeDestination: (String) -> User?, verificationTransport: TransportType
+    ): ResponseEntity<LoginResponse> {
+        val (code, codeId) = loginRequest
+        return when (
+            val codeAcceptanceResult = verificationService.acceptCode(code, codeId, LOGIN, verificationTransport)
+        ) {
+            is NotAccepted -> status(UNAUTHORIZED).body(Error(VERIFICATION_CODE_INVALID))
+            is Accepted -> {
+                loadUserByCodeDestination(codeAcceptanceResult.destination)?.let { user ->
+                    val tokens = tokenService.emitTokens(user)
+                    ok().body(
+                        Success(
+                            accessToken = tokens.accessToken,
+                            refreshToken = tokens.refreshToken
+                        )
+                    )
+                } ?: badRequest().body(Error(USER_NOT_FOUND))
+            }
         }
-        val tokens = tokenService.emitTokens(user)
-        return ResponseEntity.ok(
-            Success(
-                accessToken = tokens.accessToken,
-                refreshToken = tokens.refreshToken
+    }
+
+    private inline fun handleVerificationCodeRequest(
+        destination: String, userExistentPredicate: (String) -> Boolean, verificationTransport: TransportType
+    ): ResponseEntity<LoginResponse> {
+        if (!userExistentPredicate(destination)) {
+            return status(UNAUTHORIZED).body(Error(USER_NOT_FOUND))
+        }
+        val verificationCode = try {
+            verificationService.sendLoginCode(destination, verificationTransport)
+        } catch (e: ActiveCodeAlreadyExists) {
+            return badRequest().body(Error(VERIFICATION_CODE_EXISTS))
+        }
+        return ok(
+            VerificationCode(
+                expiresAt = verificationCode.expiresAt, verificationId = verificationCode.id!!
             )
         )
     }
 }
 
-data class LoginRequest(val email: String, val verificationCode: String)
 
-sealed class LoginResponseMessage {
-    data class Error(val error: LoginErrorCode) : LoginResponseMessage()
-    data class Success(val accessToken: String, val refreshToken: String) : LoginResponseMessage()
-    data class VerificationCode(val expiresAt: Instant) : LoginResponseMessage()
+data class LoginRequest(val verificationCode: String, val verificationId: String)
+
+sealed class LoginResponse {
+    data class Error(val error: LoginErrorCode) : LoginResponse()
+    data class Success(val accessToken: String, val refreshToken: String) : LoginResponse()
+    data class VerificationCode(val expiresAt: Instant, val verificationId: String) : LoginResponse()
 }
 
 enum class LoginErrorCode {
     USER_NOT_FOUND,
     VERIFICATION_CODE_INVALID,
-    VERIFICATION_CODE_EXISTS
+    VERIFICATION_CODE_EXISTS,
+    EMAIL_INVALID
 }

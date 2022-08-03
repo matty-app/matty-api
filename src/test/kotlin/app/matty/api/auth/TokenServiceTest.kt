@@ -21,6 +21,7 @@ class TokenServiceTest {
         fullName = "john doe",
         email = "mail@mail.com",
         interests = emptyList(),
+        phone = null,
         id = "userid"
     )
 
@@ -158,6 +159,7 @@ class TokenServiceTest {
         fullName = "john doe",
         email = "mail@mail.com",
         interests = emptyList(),
+        phone = null,
         id = id
     )
 }

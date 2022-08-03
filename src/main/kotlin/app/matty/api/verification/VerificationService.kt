@@ -1,58 +1,84 @@
 package app.matty.api.verification
 
-import app.matty.api.common.MattyApiException
+import app.matty.api.verification.CodeAcceptanceResult.Accepted
+import app.matty.api.verification.CodeAcceptanceResult.NotAccepted
+import app.matty.api.verification.Purpose.LOGIN
+import app.matty.api.verification.Purpose.REGISTRATION
+import app.matty.api.verification.data.VerificationCodeRepository
+import app.matty.api.verification.sender.VerificationCodeSenderDelegate
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.time.Instant
 
 private val log = LoggerFactory.getLogger(VerificationService::class.java)
 
-@Service
+@Component
 class VerificationService(
-    @Value("\${app.verification-code.ttl}")
-    private val ttl: Long,
-    private val sender: VerificationCodeSender,
-    private val repository: VerificationCodeRepository
+    private val codeIssuer: VerificationCodeIssuer,
+    private val codeRepository: VerificationCodeRepository,
+    private val codeSenderDelegate: VerificationCodeSenderDelegate
 ) {
-    fun generateAndSend(destination: String): VerificationCode {
-        if (repository.isActiveCodeExist(destination)) {
-            log.error("Verification code for destination '$destination' is already exist!")
-            throw ActiveCodeAlreadyExists()
-        }
-        val code = codesRange.random().toString()
-        val expiresAt = Instant.now().plusMillis(ttl)
-        val verificationCode = VerificationCode(code, destination, expiresAt, submitted = false)
-        repository.add(verificationCode)
-        log.debug("Generated verification code: $verificationCode")
-        sender.send(code, destination)
-        return verificationCode
+    fun sendLoginCode(destination: String, transportType: TransportType): VerificationCode {
+        return generateAndSend(destination, transportType, LOGIN)
     }
 
-    fun acceptCode(code: String, destination: String): Boolean {
-        log.debug("Trying to submit verification code: $code (destination $destination)")
+    fun sendRegistrationCode(destination: String, transportType: TransportType): VerificationCode {
+        return generateAndSend(destination, transportType, REGISTRATION)
+    }
+
+    fun acceptCode(
+        code: String,
+        codeId: String,
+        purpose: Purpose,
+        transport: TransportType
+    ): CodeAcceptanceResult {
+        log.debug("Trying to accept verification code: $code, purpose: $purpose, id: $codeId, transport: $transport")
+
         val now = Instant.now()
-        val verificationCode = repository.findOneByCodeAndDestination(code, destination)
+        val verificationCode = codeRepository.findById(codeId)
 
         if (verificationCode == null) {
             log.debug("Verification code not found")
-            return false
+            return NotAccepted
         }
-        if (verificationCode.submitted) {
+        if (verificationCode.transport != transport) {
+            log.debug("Type of transport: '$transport' does not match expected: '${verificationCode.transport}'")
+            return NotAccepted
+        }
+        if (verificationCode.accepted) {
             log.debug("Verification code already used")
-            return false
+            return NotAccepted
+        }
+        if (verificationCode.purpose != purpose) {
+            log.debug("Verification code: $verificationCode doesnt match purpose $purpose")
+            return NotAccepted
+        }
+        if (verificationCode.code != code) {
+            log.debug("Verification code: '$code' doesnt match ")
+            return NotAccepted
         }
         if (now.isAfter(verificationCode.expiresAt)) {
             log.debug("Verification code has expired")
-            return false
+            return NotAccepted
         }
 
-        repository.update(verificationCode.copy(submitted = true))
+        codeRepository.update(verificationCode.copy(accepted = true))
 
-        return true
+        return Accepted(verificationCode.destination, verificationCode.transport)
     }
 
-    private val codesRange = (1000..9999)
+    private fun generateAndSend(
+        destination: String,
+        transportType: TransportType,
+        purpose: Purpose
+    ): VerificationCode {
+        val verificationCode = codeIssuer.issueCode(destination, purpose, transportType)
+        codeSenderDelegate.send(verificationCode)
+        return verificationCode
+    }
 }
 
-class ActiveCodeAlreadyExists : MattyApiException()
+sealed class CodeAcceptanceResult {
+    object NotAccepted : CodeAcceptanceResult()
+    data class Accepted(val destination: String, val transportType: TransportType) : CodeAcceptanceResult()
+}

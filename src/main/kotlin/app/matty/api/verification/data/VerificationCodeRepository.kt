@@ -1,5 +1,6 @@
-package app.matty.api.verification
+package app.matty.api.verification.data
 
+import app.matty.api.verification.VerificationCode
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -20,12 +21,8 @@ class VerificationCodeRepository(
         return mongoOperations.exists(query, DB_COLLECTION_NAME)
     }
 
-    fun findOneByCodeAndDestination(code: String, destination: String): VerificationCode? {
-        val query = Query.query(
-            Criteria
-                .where("code").`is`(code)
-                .and("destination").`is`(destination)
-        )
+    fun findById(id: String): VerificationCode? {
+        val query = Query.query(Criteria.where("_id").`is`(id))
         return mongoOperations.findOne(query, VerificationCode::class.java, DB_COLLECTION_NAME)
     }
 

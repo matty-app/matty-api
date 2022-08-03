@@ -148,7 +148,8 @@
     "emoji": "🧑‍💻"
   },
   {
-    "name": "Conference"
+    "name": "Conference",
+    "emoji": "🙊"
   },
   {
     "name": "Concert",
@@ -199,7 +200,8 @@
     "emoji": "☕️"
   },
   {
-    "name": "Webinar"
+    "name": "Webinar",
+    "emoji": "👨‍🏫"
   },
   {
     "name": "Workout",

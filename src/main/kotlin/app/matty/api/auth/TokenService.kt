@@ -24,7 +24,6 @@ class TokenService(
             accessToken = tokenGenerator.generateAccessToken(
                 userId = user.id,
                 claims = mapOf(
-                    EMAIL_CLAIM to user.email,
                     FULL_NAME_CLAIM to user.fullName
                 )
             ), refreshToken = tokenGenerator.generateRefreshToken(user.id)
@@ -50,5 +49,4 @@ class TokenService(
     }
 }
 
-private const val EMAIL_CLAIM = "email"
 private const val FULL_NAME_CLAIM = "fullName"

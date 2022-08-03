@@ -20,6 +20,7 @@ class DefaultUserInitializer(
             fullName = "Piter Parker",
             email = "spider@marvel.com",
             interests = emptyList(),
+            phone = null,
             id = null
         )
         if (userRepository.count() == 0L) {
