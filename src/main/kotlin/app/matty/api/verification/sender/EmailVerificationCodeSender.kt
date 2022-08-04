@@ -1,6 +1,6 @@
 package app.matty.api.verification.sender
 
-import app.matty.api.verification.VerificationCode
+import app.matty.api.verification.data.VerificationCode
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -8,7 +8,7 @@ private val log = LoggerFactory.getLogger(EmailVerificationCodeSender::class.jav
 
 @Component
 class EmailVerificationCodeSender : VerificationCodeSender {
-    override fun send(verificationCode: VerificationCode) {
-        log.info("Sending verification code $verificationCode")
+    override suspend fun send(verificationCode: VerificationCode) {
+        log.info("Sending email verification code $verificationCode")
     }
 }

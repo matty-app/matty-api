@@ -1,6 +1,5 @@
 package app.matty.api.verification.data
 
-import app.matty.api.verification.VerificationCode
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query

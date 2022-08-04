@@ -1,8 +1,8 @@
 package app.matty.api.verification.sender
 
-import app.matty.api.verification.TransportType.EMAIL
-import app.matty.api.verification.TransportType.SMS
-import app.matty.api.verification.VerificationCode
+import app.matty.api.verification.data.ChannelType.EMAIL
+import app.matty.api.verification.data.ChannelType.SMS
+import app.matty.api.verification.data.VerificationCode
 import org.springframework.stereotype.Component
 
 @Component
@@ -10,8 +10,8 @@ class VerificationCodeSenderDelegate(
     private val emailVerificationCodeSender: VerificationCodeSender,
     private val smsVerificationCodeSender: VerificationCodeSender
 ) : VerificationCodeSender {
-    override fun send(verificationCode: VerificationCode) {
-        val codeSender = when (verificationCode.transport) {
+    override suspend fun send(verificationCode: VerificationCode) {
+        val codeSender = when (verificationCode.channel) {
             EMAIL -> emailVerificationCodeSender
             SMS -> smsVerificationCodeSender
         }

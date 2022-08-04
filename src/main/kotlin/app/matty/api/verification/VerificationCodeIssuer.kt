@@ -1,6 +1,9 @@
 package app.matty.api.verification
 
 import app.matty.api.common.MattyApiException
+import app.matty.api.verification.data.ChannelType
+import app.matty.api.verification.data.Purpose
+import app.matty.api.verification.data.VerificationCode
 import app.matty.api.verification.data.VerificationCodeRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -18,7 +21,7 @@ class VerificationCodeIssuer(
 ) {
     private val codesRange = (1000..9999)
 
-    fun issueCode(destination: String, purpose: Purpose, transportType: TransportType): VerificationCode {
+    fun issueCode(destination: String, purpose: Purpose, channel: ChannelType): VerificationCode {
         if (codeRepository.isActiveCodeExist(destination)) {
             log.error("Verification code {destination: '$destination')} is already exist!")
             throw ActiveCodeAlreadyExists()
@@ -28,7 +31,7 @@ class VerificationCodeIssuer(
         val verificationCode = VerificationCode(
             code,
             destination,
-            transportType,
+            channel,
             purpose,
             expiresAt,
             accepted = false,

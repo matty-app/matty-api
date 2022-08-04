@@ -1,18 +1,18 @@
-package app.matty.api.verification
+package app.matty.api.verification.data
 
 import java.time.Instant
 
 data class VerificationCode(
     val code: String,
     val destination: String,
-    val transport: TransportType,
+    val channel: ChannelType,
     val purpose: Purpose,
     val expiresAt: Instant,
     val accepted: Boolean,
     val id: String?
 )
 
-enum class TransportType {
+enum class ChannelType {
     SMS,
     EMAIL
 }

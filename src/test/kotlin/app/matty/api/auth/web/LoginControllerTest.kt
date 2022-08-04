@@ -2,9 +2,9 @@ package app.matty.api.auth.web
 
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
-import app.matty.api.verification.Purpose.LOGIN
-import app.matty.api.verification.TransportType.EMAIL
-import app.matty.api.verification.VerificationCode
+import app.matty.api.verification.data.Purpose.LOGIN
+import app.matty.api.verification.data.ChannelType.EMAIL
+import app.matty.api.verification.data.VerificationCode
 import app.matty.api.verification.data.VerificationCodeRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers.`is`
@@ -67,7 +67,7 @@ class LoginControllerTest {
         code = "1234",
         destination = user.email!!,
         expiresAt = Instant.now().plusSeconds(60),
-        transport = EMAIL,
+        channel = EMAIL,
         purpose = LOGIN,
         accepted = false,
         id = "validVerificationCode"
@@ -77,7 +77,7 @@ class LoginControllerTest {
         code = "1234",
         destination = "user-not-found",
         expiresAt = Instant.now().plusSeconds(60),
-        transport = EMAIL,
+        channel = EMAIL,
         purpose = LOGIN,
         accepted = false,
         id = "undefinedUserVerificationCode"
@@ -176,7 +176,7 @@ class LoginControllerTest {
             post("/login/email").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
+            .andExpect(jsonPath("$.error", `is`(LoginErrorCode.INVALID_VERIFICATION_CODE.name)))
     }
 
     @Test
@@ -192,7 +192,7 @@ class LoginControllerTest {
             post("/login/email").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
+            .andExpect(jsonPath("$.error", `is`(LoginErrorCode.INVALID_VERIFICATION_CODE.name)))
     }
 
 

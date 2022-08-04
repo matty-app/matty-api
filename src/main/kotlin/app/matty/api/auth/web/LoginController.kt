@@ -1,10 +1,10 @@
 package app.matty.api.auth.web
 
 import app.matty.api.auth.TokenService
-import app.matty.api.auth.web.LoginErrorCode.EMAIL_INVALID
+import app.matty.api.auth.web.LoginErrorCode.INVALID_EMAIL
+import app.matty.api.auth.web.LoginErrorCode.INVALID_VERIFICATION_CODE
 import app.matty.api.auth.web.LoginErrorCode.USER_NOT_FOUND
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
-import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_INVALID
 import app.matty.api.auth.web.LoginResponse.Error
 import app.matty.api.auth.web.LoginResponse.Success
 import app.matty.api.auth.web.LoginResponse.VerificationCode
@@ -14,11 +14,11 @@ import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.ActiveCodeAlreadyExists
 import app.matty.api.verification.CodeAcceptanceResult.Accepted
 import app.matty.api.verification.CodeAcceptanceResult.NotAccepted
-import app.matty.api.verification.Purpose.LOGIN
-import app.matty.api.verification.TransportType
-import app.matty.api.verification.TransportType.EMAIL
-import app.matty.api.verification.TransportType.SMS
 import app.matty.api.verification.VerificationService
+import app.matty.api.verification.data.ChannelType
+import app.matty.api.verification.data.ChannelType.EMAIL
+import app.matty.api.verification.data.ChannelType.SMS
+import app.matty.api.verification.data.Purpose.LOGIN
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.badRequest
@@ -42,46 +42,54 @@ class LoginController(
         @RequestParam("email", required = true) email: String,
     ): ResponseEntity<LoginResponse> {
         if (isEmailNotValid(email)) {
-            return badRequest().body(Error(EMAIL_INVALID))
+            return badRequest().body(Error(INVALID_EMAIL))
         }
         return handleVerificationCodeRequest(
             destination = email,
             userExistentPredicate = userRepository::existsByEmail,
-            verificationTransport = EMAIL
+            verificationChannel = EMAIL
         )
     }
-
-    @PostMapping("/email")
-    fun loginByEmail(@RequestBody loginRequest: LoginRequest) = handleLogin(
-        loginRequest = loginRequest,
-        loadUserByCodeDestination = userRepository::findByEmail,
-        verificationTransport = EMAIL
-    )
-
-    @PostMapping("/phone")
-    fun loginByPhone(@RequestBody loginRequest: LoginRequest) = handleLogin(
-        loginRequest = loginRequest,
-        loadUserByCodeDestination = userRepository::findByPhone,
-        verificationTransport = SMS
-    )
 
     @GetMapping("/phone/code")
     fun getSmsVerificationCode(
         @RequestParam("phone", required = false) phone: String
-    ): ResponseEntity<LoginResponse> = handleVerificationCodeRequest(
-        destination = phone,
-        userExistentPredicate = userRepository::existsByPhone,
-        verificationTransport = SMS
-    )
+    ): ResponseEntity<LoginResponse> {
+        return handleVerificationCodeRequest(
+            destination = phone,
+            userExistentPredicate = userRepository::existsByPhone,
+            verificationChannel = SMS
+        )
+    }
+
+    @PostMapping("/email")
+    fun loginByEmail(@RequestBody loginRequest: LoginRequest): ResponseEntity<LoginResponse> {
+        return handleLogin(
+            loginRequest = loginRequest,
+            loadUserByCodeDestination = userRepository::findByEmail,
+            verificationChannel = EMAIL
+        )
+    }
+
+    @PostMapping("/phone")
+    fun loginByPhone(@RequestBody loginRequest: LoginRequest): ResponseEntity<LoginResponse> {
+        return handleLogin(
+            loginRequest = loginRequest,
+            loadUserByCodeDestination = userRepository::findByPhone,
+            verificationChannel = SMS
+        )
+    }
 
     private inline fun handleLogin(
-        loginRequest: LoginRequest, loadUserByCodeDestination: (String) -> User?, verificationTransport: TransportType
+        loginRequest: LoginRequest,
+        loadUserByCodeDestination: (String) -> User?,
+        verificationChannel: ChannelType
     ): ResponseEntity<LoginResponse> {
         val (code, codeId) = loginRequest
         return when (
-            val codeAcceptanceResult = verificationService.acceptCode(code, codeId, LOGIN, verificationTransport)
+            val codeAcceptanceResult = verificationService.acceptCode(code, codeId, LOGIN, verificationChannel)
         ) {
-            is NotAccepted -> status(UNAUTHORIZED).body(Error(VERIFICATION_CODE_INVALID))
+            is NotAccepted -> status(UNAUTHORIZED).body(Error(INVALID_VERIFICATION_CODE))
             is Accepted -> {
                 loadUserByCodeDestination(codeAcceptanceResult.destination)?.let { user ->
                     val tokens = tokenService.emitTokens(user)
@@ -97,13 +105,13 @@ class LoginController(
     }
 
     private inline fun handleVerificationCodeRequest(
-        destination: String, userExistentPredicate: (String) -> Boolean, verificationTransport: TransportType
+        destination: String, userExistentPredicate: (String) -> Boolean, verificationChannel: ChannelType
     ): ResponseEntity<LoginResponse> {
         if (!userExistentPredicate(destination)) {
             return status(UNAUTHORIZED).body(Error(USER_NOT_FOUND))
         }
         val verificationCode = try {
-            verificationService.sendLoginCode(destination, verificationTransport)
+            verificationService.sendLoginCode(destination, verificationChannel)
         } catch (e: ActiveCodeAlreadyExists) {
             return badRequest().body(Error(VERIFICATION_CODE_EXISTS))
         }
@@ -126,7 +134,7 @@ sealed class LoginResponse {
 
 enum class LoginErrorCode {
     USER_NOT_FOUND,
-    VERIFICATION_CODE_INVALID,
     VERIFICATION_CODE_EXISTS,
-    EMAIL_INVALID
+    INVALID_VERIFICATION_CODE,
+    INVALID_EMAIL
 }

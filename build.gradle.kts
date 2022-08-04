@@ -23,6 +23,8 @@ dependencies {
     implementation("com.auth0:java-jwt:4.0.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("io.mockk:mockk:1.12.5")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
