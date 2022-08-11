@@ -1,14 +1,14 @@
-package app.matty.api.auth
+package app.matty.api.auth.token
 
-import app.matty.api.auth.config.TokensConfiguration
+import app.matty.api.auth.config.TokensConfig
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
-class TokenGenerator(
-    private val tokensConfiguration: TokensConfiguration
+class JwtGenerator(
+    private val tokensConfiguration: TokensConfig
 ) {
     fun generateAccessToken(userId: String, claims: Map<String, String>): String = generateToken(
         userId = userId,

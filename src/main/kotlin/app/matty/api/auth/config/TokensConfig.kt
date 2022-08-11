@@ -5,14 +5,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-data class TokensConfiguration(
+data class TokensConfig(
     @Value("\${app.tokens.refresh-token-ttl}")
     val refreshTokenTtl: Long,
     @Value("\${app.tokens.access-token-ttl}")
     val accessTokenTtl: Long,
-    @Value("\${app.tokens.access-token-ttl}")
+    @Value("\${app.tokens.refresh-token-secret}")
     val refreshTokenSecret: String,
-    @Value("\${app.tokens.access-token-ttl}")
+    @Value("\${app.tokens.access-token-secret}")
     val accessTokenSecret: String,
 ) {
     val refreshTokenAlgorithm: Algorithm by lazy { Algorithm.HMAC256(refreshTokenSecret) }

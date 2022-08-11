@@ -1,11 +1,10 @@
 package app.matty.api.user.web
 
-import app.matty.api.auth.TokenAuthentication
+import app.matty.api.auth.getUserIdOrThrow
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -18,8 +17,7 @@ class CurrentUserController(
 ) {
     @GetMapping("/me")
     fun me(): ResponseEntity<User> {
-        val userId = (SecurityContextHolder.getContext().authentication as? TokenAuthentication)?.userId
-            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        val userId = getUserIdOrThrow { ResponseStatusException(HttpStatus.UNAUTHORIZED) }
         val user = userRepository.findById(userId).orElseThrow {
             throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }

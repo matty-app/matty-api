@@ -1,9 +1,12 @@
 package app.matty.api.auth
 
-import app.matty.api.auth.data.RefreshTokenRepository
-import app.matty.api.auth.exc.InvalidTokenException
-import app.matty.api.auth.exc.TokenServiceException
-import app.matty.api.auth.exc.UnidentifiedRefreshToken
+import app.matty.api.auth.token.JwtDecoder
+import app.matty.api.auth.token.JwtGenerator
+import app.matty.api.auth.token.TokenService
+import app.matty.api.auth.token.data.RefreshTokenRepository
+import app.matty.api.auth.token.data.TokenData
+import app.matty.api.auth.token.exception.InvalidTokenException
+import app.matty.api.auth.token.exception.TokenServiceException
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import io.mockk.every
@@ -27,8 +30,8 @@ class TokenServiceTest {
     @Test
     fun `should not emmit tokens if userid is null`() {
         val tokenService = TokenService(
-            tokenGenerator = mockk(),
-            tokenDataExtractor = mockk(),
+            jwtGenerator = mockk(),
+            refreshJwtDecoder = mockk(),
             refreshTokenRepository = mockk(),
             userRepository = mockk()
         )
@@ -41,14 +44,14 @@ class TokenServiceTest {
 
     @Test
     fun `should emmit tokens`() {
-        val tokenGenerator = mockk<TokenGenerator> {
+        val tokenGenerator = mockk<JwtGenerator> {
             every { generateAccessToken(user.id!!, any()) } returns accessToken
             every { generateRefreshToken(user.id!!) } returns refreshToken
         }
         val refreshTokenRepository = mockk<RefreshTokenRepository>(relaxed = true)
         val tokenService = TokenService(
-            tokenGenerator = tokenGenerator,
-            tokenDataExtractor = mockk(),
+            jwtGenerator = tokenGenerator,
+            refreshJwtDecoder = mockk(),
             refreshTokenRepository = refreshTokenRepository,
             userRepository = mockk()
         )
@@ -69,13 +72,13 @@ class TokenServiceTest {
             every { exists(refreshToken) } returns false
         }
         val tokenService = TokenService(
-            tokenGenerator = mockk(),
-            tokenDataExtractor = mockk(relaxed = true),
+            jwtGenerator = mockk(),
+            refreshJwtDecoder = mockk(relaxed = true),
             refreshTokenRepository = refreshTokenRepository,
             userRepository = mockk()
         )
 
-        assertThrows<UnidentifiedRefreshToken> {
+        assertThrows<TokenServiceException> {
             tokenService.refreshTokens(refreshToken)
         }
     }
@@ -88,12 +91,12 @@ class TokenServiceTest {
         val userRepository = mockk<UserRepository> {
             every { findById(user.id!!) } returns Optional.empty()
         }
-        val tokenDataExtractor = mockk<TokenDataExtractor>() {
-            every { getUserIdFromRefreshToken(refreshToken) } returns user.id
+        val refreshJwtDecoder = mockk<JwtDecoder> {
+            every { decode(any()) } returns TokenData(subject = user.id!!)
         }
         val tokenService = TokenService(
-            tokenGenerator = mockk(),
-            tokenDataExtractor = tokenDataExtractor,
+            jwtGenerator = mockk(),
+            refreshJwtDecoder = refreshJwtDecoder,
             refreshTokenRepository = refreshTokenRepository,
             userRepository = userRepository
         )
@@ -112,17 +115,17 @@ class TokenServiceTest {
         val userRepository = mockk<UserRepository> {
             every { findById(user.id!!) } returns Optional.of(user)
         }
-        val tokenDataExtractor = mockk<TokenDataExtractor> {
-            every { getUserIdFromRefreshToken(refreshToken) } throws InvalidTokenException("Invalid refresh token")
+        val refreshJwtDecoder = mockk<JwtDecoder> {
+            every { decode(refreshToken) } throws InvalidTokenException("Invalid refresh token")
         }
         val tokenService = TokenService(
-            tokenGenerator = mockk(),
-            tokenDataExtractor = tokenDataExtractor,
+            jwtGenerator = mockk(),
+            refreshJwtDecoder = refreshJwtDecoder,
             refreshTokenRepository = refreshTokenRepository,
             userRepository = userRepository
         )
 
-        assertThrows<InvalidTokenException> {
+        assertThrows<TokenServiceException> {
             tokenService.refreshTokens(refreshToken)
         }
     }
@@ -137,12 +140,12 @@ class TokenServiceTest {
         val userRepository = mockk<UserRepository> {
             every { findById(user.id!!) } returns Optional.of(user)
         }
-        val tokenDataExtractor = mockk<TokenDataExtractor> {
-            every { getUserIdFromRefreshToken(refreshToken) } returns user.id
+        val refreshJwtDecoder = mockk<JwtDecoder> {
+            every { decode(refreshToken) } returns TokenData(subject = user.id!!)
         }
         val tokenService = TokenService(
-            tokenGenerator = mockk(relaxed = true),
-            tokenDataExtractor = tokenDataExtractor,
+            jwtGenerator = mockk(relaxed = true),
+            refreshJwtDecoder = refreshJwtDecoder,
             refreshTokenRepository = refreshTokenRepository,
             userRepository = userRepository
         )

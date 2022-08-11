@@ -1,6 +1,7 @@
 package app.matty.api.auth
 
-import app.matty.api.auth.config.TokensConfiguration
+import app.matty.api.auth.config.TokensConfig
+import app.matty.api.auth.token.JwtGenerator
 import com.auth0.jwt.JWT
 import io.mockk.every
 import io.mockk.mockkStatic
@@ -11,13 +12,13 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class TokenGeneratorTest {
-    private val config = TokensConfiguration(
+    private val config = TokensConfig(
         refreshTokenTtl = TEN_MINUTES,
         accessTokenTtl = FIVE_MINUTES,
         refreshTokenSecret = TOKEN_SECRET,
         accessTokenSecret = TOKEN_SECRET
     )
-    private val tokenGenerator = TokenGenerator(config)
+    private val tokenGenerator = JwtGenerator(config)
     private val userId = "userid"
     private val fixedTime = Instant.now()
 

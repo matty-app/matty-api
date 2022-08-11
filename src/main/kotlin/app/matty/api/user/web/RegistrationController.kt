@@ -1,6 +1,6 @@
 package app.matty.api.user.web
 
-import app.matty.api.auth.TokenService
+import app.matty.api.auth.token.TokenService
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import app.matty.api.user.web.RegistrationErrorCode.USER_EXISTS
