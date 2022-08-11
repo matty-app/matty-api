@@ -1,6 +1,6 @@
 package app.matty.api.user.web
 
-import app.matty.api.auth.TokenAuthentication
+import app.matty.api.auth.token.TokenAuthentication
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import org.springframework.http.HttpStatus

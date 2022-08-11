@@ -1,5 +1,6 @@
 package app.matty.api.auth.web
 
+import app.matty.api.MongoTestContainer
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.VerificationCode
@@ -12,47 +13,21 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.util.TestPropertyValues
-import org.springframework.context.ApplicationContextInitializer
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.Instant
 import java.util.UUID
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
-@ContextConfiguration(
-    initializers = [LoginControllerTest.Companion.Initializer::class],
-)
-class LoginControllerTest {
-    companion object {
-        @Container
-        var mongoDBContainer = MongoDBContainer("mongo")
-
-        class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
-            override fun initialize(applicationContext: ConfigurableApplicationContext) {
-                TestPropertyValues.of(
-                    mapOf(
-                        "spring.data.mongodb.uri" to mongoDBContainer.replicaSetUrl
-                    )
-                ).applyTo(applicationContext)
-            }
-        }
-    }
-
+class LoginControllerTest : MongoTestContainer() {
     private val user = User(
         fullName = "john doe",
         email = "johndoe@matty.dev",
@@ -172,7 +147,8 @@ class LoginControllerTest {
     fun `should login`() {
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = user.email, verificationCode = verificationCode.code
+                email = user.email,
+                verificationCode = verificationCode.code
             )
         )
 

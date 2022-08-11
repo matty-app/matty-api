@@ -1,6 +1,6 @@
 package app.matty.api.auth.web
 
-import app.matty.api.auth.TokenService
+import app.matty.api.auth.token.TokenService
 import app.matty.api.auth.web.LoginErrorCode.USER_NOT_FOUND
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_EXISTS
 import app.matty.api.auth.web.LoginErrorCode.VERIFICATION_CODE_INVALID

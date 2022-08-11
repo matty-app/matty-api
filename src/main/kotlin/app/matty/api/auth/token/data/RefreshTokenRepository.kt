@@ -1,4 +1,4 @@
-package app.matty.api.auth.data
+package app.matty.api.auth.token.data
 
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Criteria

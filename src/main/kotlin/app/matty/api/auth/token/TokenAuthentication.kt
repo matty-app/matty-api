@@ -1,11 +1,11 @@
-package app.matty.api.auth
+package app.matty.api.auth.token
 
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 class TokenAuthentication(
     val token: String,
-    val userId: String
+    val userId: String? = null
 ) : Authentication {
     override fun getName() = null
 
@@ -17,7 +17,7 @@ class TokenAuthentication(
 
     override fun getPrincipal() = userId
 
-    override fun isAuthenticated() = true
+    override fun isAuthenticated() = userId != null
 
     override fun setAuthenticated(isAuthenticated: Boolean) {}
 }
