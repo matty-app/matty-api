@@ -1,6 +1,6 @@
 package app.matty.api.auth.web
 
-import app.matty.api.MongoTestContainer
+import app.matty.api.BaseApiIntegrationTest
 import app.matty.api.user.data.User
 import app.matty.api.user.data.UserRepository
 import app.matty.api.verification.VerificationCode
@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -24,10 +24,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.UUID
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
-class LoginControllerTest : MongoTestContainer() {
+class LoginHandlerTest : BaseApiIntegrationTest() {
     private val user = User(
         fullName = "john doe",
         email = "johndoe@matty.dev",
@@ -70,7 +69,7 @@ class LoginControllerTest : MongoTestContainer() {
     fun `should not generate verification code if user not found`() {
         mockMvc.perform(get("/login/code?email=usernotfound@matty.dev"))
             .andExpect(status().is4xxClientError)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.USER_NOT_FOUND.name)))
     }
 
@@ -78,7 +77,7 @@ class LoginControllerTest : MongoTestContainer() {
     fun `should not generate verification code if active code already exists`() {
         mockMvc.perform(get("/login/code?email=${user.email}"))
             .andExpect(status().is4xxClientError)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_EXISTS.name)))
     }
 
@@ -88,7 +87,7 @@ class LoginControllerTest : MongoTestContainer() {
 
         mockMvc.perform(get("/login/code?email=${user.email}"))
             .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.expiresAt").isNotEmpty)
     }
 
@@ -97,14 +96,14 @@ class LoginControllerTest : MongoTestContainer() {
         val email = "usernotfound@matty.dev"
         val requestBody = objectMapper.writeValueAsString(
             LoginRequest(
-                email = email, verificationCode = verificationCode.code
+                email = email,
+                verificationCode = verificationCode.code
             )
         )
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.USER_NOT_FOUND.name)))
     }
 
@@ -120,9 +119,9 @@ class LoginControllerTest : MongoTestContainer() {
         verificationCodeRepository.update(verificationCode.copy(submitted = true))
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
     }
 
@@ -136,9 +135,9 @@ class LoginControllerTest : MongoTestContainer() {
         )
 
         mockMvc.perform(
-            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            post("/login").content(requestBody).header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
         ).andExpect(status().is4xxClientError)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.error", `is`(LoginErrorCode.VERIFICATION_CODE_INVALID.name)))
     }
 
@@ -153,9 +152,9 @@ class LoginControllerTest : MongoTestContainer() {
         )
 
         mockMvc.perform(
-            post("/login").header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON).content(requestBody)
+            post("/login").header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON).content(requestBody)
         ).andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.accessToken").isNotEmpty)
             .andExpect(jsonPath("$.refreshToken").isNotEmpty)
     }

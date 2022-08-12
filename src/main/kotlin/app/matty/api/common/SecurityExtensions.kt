@@ -1,4 +1,4 @@
-package app.matty.api.auth
+package app.matty.api.common
 
 import app.matty.api.auth.token.TokenAuthentication
 import org.springframework.security.core.context.SecurityContextHolder
