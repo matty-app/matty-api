@@ -1,6 +1,6 @@
 package app.matty.api.auth.web
 
-import app.matty.api.MongoTestContainer
+import app.matty.api.BaseApiIntegrationTest
 import app.matty.api.auth.token.JwtGenerator
 import app.matty.api.auth.token.data.RefreshTokenRepository
 import app.matty.api.user.data.User
@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class RefreshTokensControllerTest : MongoTestContainer() {
+class RefreshTokensHandlerTest : BaseApiIntegrationTest() {
 
     @Autowired
     private lateinit var refreshTokenRepository: RefreshTokenRepository
